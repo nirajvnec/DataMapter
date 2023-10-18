@@ -1,104 +1,128 @@
 import React, { useState } from "react";
 import "./App.css";
-import DatabaseTechnologySelector from "./DatabaseTechnologySelector";
+import DatabaseConfig, { DatabaseConfigType } from "./DatabaseConfig";
 import SourceTableSchemaLoader from "./SourceTableSchemaLoader";
 import ColumnMappingWizard from "./ColumnMappingWizard";
-import QueryBuilder from "./QueryBuilder"; // Ensure you've created this component
+import JSONBuilder from "./JSONBuilder";
+import { ColumnDetail, GenericMapping, Mapping } from "./types";
+import QueryBuilder from "./QueryBuilder";
 
 function App() {
   const [step, setStep] = useState(1);
-  const [sourceTechnology, setSourceTechnology] = useState<string>("");
-  const [destinationTechnology, setDestinationTechnology] =
-    useState<string>("");
-  const [sourceSchema, setSourceSchema] = useState<any[]>([]);
-  const [destinationSchema, setDestinationSchema] = useState<any[]>([]);
-  const [mappings, setMappings] = useState<{ [key: string]: string }>({});
 
-  const handleSourceTechnologySelect = (technology: string) => {
-    setSourceTechnology(technology);
+  const [sourceSchema, setSourceSchema] = useState<ColumnDetail[]>([]);
+  const [destinationSchema, setDestinationSchema] = useState<ColumnDetail[]>(
+    []
+  );
+
+  const [mappings, setMappings] = useState<GenericMapping<ColumnDetail>[]>([]);
+
+  const [sourceConfig, setSourceConfig] = useState<DatabaseConfigType>({
+    type: "",
+    host: "",
+    port: 0,
+    username: "",
+    password: "",
+    databaseName: "",
+    tableName: "",
+  });
+
+  const [destinationConfig, setDestinationConfig] =
+    useState<DatabaseConfigType>({
+      type: "",
+      host: "",
+      port: 0,
+      username: "",
+      password: "",
+      databaseName: "",
+      tableName: "",
+    });
+
+  const [queries, setQueries] = useState<any[]>([]);
+
+  const handleConfigsSubmit = (
+    sourceConfig: DatabaseConfigType,
+    destinationConfig: DatabaseConfigType
+  ) => {
+    setSourceConfig(sourceConfig);
+    setDestinationConfig(destinationConfig);
+    setStep(2);
   };
 
-  const handleDestinationTechnologySelect = (technology: string) => {
-    setDestinationTechnology(technology);
-  };
+  const [generatedQuery, setGeneratedQuery] = useState<string>(""); // New state for holding the generated query
 
-  const handleSourceSchemaLoad = (schema: any[]) => {
-    setSourceSchema(schema);
-  };
+  // ... (rest of your existing code)
 
-  const handleDestinationSchemaLoad = (schema: any[]) => {
-    setDestinationSchema(schema);
-  };
-
-  const handleMappingComplete = (mappings: { [key: string]: string }) => {
-    setMappings(mappings);
-    setStep(4); // move to the next step to show the queries
+  const handleQuerySubmit = (query: string) => {
+    console.log("Generated Query:", query);
+    setGeneratedQuery(query); // Save the generated query to the state
+    setStep(5); // Proceed to the next step (if needed)
   };
 
   return (
     <div className="App">
       {step === 1 && (
         <>
-          <h2>Step 1: Select Database Technologies</h2>
-          <DatabaseTechnologySelector
-            label="Select Source Database Technology"
-            onTechnologySelect={handleSourceTechnologySelect}
-          />
-          <DatabaseTechnologySelector
-            label="Select Destination Database Technology"
-            onTechnologySelect={handleDestinationTechnologySelect}
-          />
-          <button
-            onClick={() => setStep(2)}
-            disabled={!sourceTechnology || !destinationTechnology}
-          >
-            Next
-          </button>
+          <h2>Step 1: Database Configuration</h2>
+          <DatabaseConfig onConfigSubmit={handleConfigsSubmit} />
         </>
       )}
 
       {step === 2 && (
         <>
           <h2>Step 2: Load Table Schemas</h2>
-          <h3>Source Table Schema</h3>
-          <SourceTableSchemaLoader onSchemaLoad={handleSourceSchemaLoad} />
-          <h3>Destination Table Schema</h3>
           <SourceTableSchemaLoader
-            onSchemaLoad={handleDestinationSchemaLoad}
-          />{" "}
-          {/* Note: Ideally, this should be a separate component named DestinationTableSchemaLoader or similar */}
-          <button
-            onClick={() => setStep(3)}
-            disabled={
-              sourceSchema.length === 0 || destinationSchema.length === 0
-            }
-          >
-            Next
-          </button>
+            onSchemaLoad={setSourceSchema}
+            isSource={true}
+          />
+          <SourceTableSchemaLoader
+            onSchemaLoad={setDestinationSchema}
+            isSource={false}
+          />
+          <button onClick={() => setStep(1)}>Back</button>
+          <button onClick={() => setStep(3)}>Next</button>
         </>
       )}
 
-      {step === 3 &&
-        sourceSchema.length > 0 &&
-        destinationSchema.length > 0 && (
-          <>
-            <h2>Step 3: Column Mapping</h2>
-            <ColumnMappingWizard
-              sourceSchema={sourceSchema}
-              destinationSchema={destinationSchema}
-              onMappingComplete={handleMappingComplete}
-            />
-          </>
-        )}
-
-      {step === 4 && Object.keys(mappings).length > 0 && (
+      {step === 3 && (
         <>
-          <h2>Step 4: Review Generated Queries</h2>
-          <QueryBuilder
-            mappings={mappings}
-            sourceTechnology={sourceTechnology}
-            destinationTechnology={destinationTechnology}
+          <h2>Step 3: Column Mapping</h2>
+          <ColumnMappingWizard
+            sourceSchema={sourceSchema}
+            destinationSchema={destinationSchema}
+            onMappingComplete={(mappings: Mapping[]) =>
+              setMappings(
+                mappings.map((mapping) => ({
+                  source: [mapping.source],
+                  destination: [mapping.destination],
+                }))
+              )
+            }
           />
+          <button onClick={() => setStep(2)}>Back</button>
+          <button onClick={() => setStep(4)}>Next</button>
+        </>
+      )}
+
+      {step === 4 && (
+        <>
+          <h2>Step 4: Review JSON Document</h2>
+          <JSONBuilder
+            mappings={mappings}
+            sourceConfig={sourceConfig}
+            destinationConfig={destinationConfig}
+            onQueriesGenerated={setQueries}
+          />
+          <button onClick={() => setStep(3)}>Back</button>
+          <button onClick={() => setStep(5)}>Next</button>
+        </>
+      )}
+      {step === 5 && (
+        <>
+          <h2>Step 5: Create Query</h2>
+          <QueryBuilder onSubmit={handleQuerySubmit} />
+          {/* If you have more steps, update the setStep value accordingly */}
+          <button onClick={() => setStep(4)}>Back</button>
         </>
       )}
     </div>

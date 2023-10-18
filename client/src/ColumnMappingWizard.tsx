@@ -1,69 +1,92 @@
-import React, { FC, useState } from "react";
+import React, { useState, FC } from "react";
+import { ColumnDetail, Mapping } from "./types";
 
 interface Props {
-  sourceSchema: any[];
-  destinationSchema: any[];
-  onMappingComplete: (mappings: { [key: string]: string }) => void;
+  sourceSchema: ColumnDetail[];
+  destinationSchema: ColumnDetail[];
+  onMappingComplete: (mappings: Mapping[]) => void;
 }
-
-interface Mapping {
-  source: string;
-  destination: string;
-}
-
 const ColumnMappingWizard: FC<Props> = ({
   sourceSchema,
   destinationSchema,
   onMappingComplete,
 }) => {
-  const [sourceColumn, setSourceColumn] = useState<string>("");
-  const [destinationColumn, setDestinationColumn] = useState<string>("");
+  const [selectedSourceColumn, setSelectedSourceColumn] =
+    useState<ColumnDetail | null>(null);
+  const [selectedDestinationColumn, setSelectedDestinationColumn] =
+    useState<ColumnDetail | null>(null);
   const [mappings, setMappings] = useState<Mapping[]>([]);
 
-  const addMapping = () => {
-    if (sourceColumn && destinationColumn) {
-      setMappings((prevMappings) => [
-        ...prevMappings,
-        { source: sourceColumn, destination: destinationColumn },
+  const handleAddMapping = () => {
+    if (selectedSourceColumn && selectedDestinationColumn) {
+      setMappings((prev) => [
+        ...prev,
+        {
+          source: selectedSourceColumn,
+          destination: selectedDestinationColumn,
+        },
       ]);
-      setSourceColumn("");
-      setDestinationColumn("");
+      setSelectedSourceColumn(null);
+      setSelectedDestinationColumn(null);
     }
+  };
+
+  const handleRemoveMapping = (mapping: Mapping) => {
+    setMappings((prev) => prev.filter((m) => m !== mapping));
+  };
+
+  const getMappedColumn = (column: ColumnDetail) => {
+    const mapping = mappings.find(
+      (m) => m.source === column || m.destination === column
+    );
+    if (mapping) {
+      return mapping.source === column ? mapping.destination : mapping.source;
+    }
+    return null;
   };
 
   return (
     <div className="mapping-wizard">
       <div className="source-columns">
         <h5>Source Columns</h5>
-        <select
-          value={sourceColumn}
-          onChange={(e) => setSourceColumn(e.target.value)}
-        >
-          <option value="">Select Source Column</option>
-          {sourceSchema.map((col, index) => (
-            <option key={index} value={col["Column Name"]}>
-              {col["Column Name"]}
-            </option>
-          ))}
-        </select>
+        {sourceSchema.map((col, index) => {
+          const mappedColumn = getMappedColumn(col);
+          return (
+            <div
+              key={index}
+              className={selectedSourceColumn === col ? "selected" : ""}
+              onClick={() => setSelectedSourceColumn(col)}
+            >
+              {col.TableName}.{col.ColumnName}{" "}
+              {mappedColumn &&
+                `-> mapped to ${mappedColumn.TableName}.${mappedColumn.ColumnName}`}
+            </div>
+          );
+        })}
       </div>
 
       <div className="destination-columns">
         <h5>Destination Columns</h5>
-        <select
-          value={destinationColumn}
-          onChange={(e) => setDestinationColumn(e.target.value)}
-        >
-          <option value="">Select Destination Column</option>
-          {destinationSchema.map((col, index) => (
-            <option key={index} value={col["Column Name"]}>
-              {col["Column Name"]}
-            </option>
-          ))}
-        </select>
+        {destinationSchema.map((col, index) => {
+          const mappedColumn = getMappedColumn(col);
+          return (
+            <div
+              key={index}
+              className={selectedDestinationColumn === col ? "selected" : ""}
+              onClick={() => setSelectedDestinationColumn(col)}
+            >
+              {col.TableName}.{col.ColumnName}{" "}
+              {mappedColumn &&
+                `-> mapped to ${mappedColumn.TableName}.${mappedColumn.ColumnName}`}
+            </div>
+          );
+        })}
       </div>
 
-      <button className="btn btn-primary" onClick={addMapping}>
+      <button
+        onClick={handleAddMapping}
+        disabled={!selectedSourceColumn || !selectedDestinationColumn}
+      >
         Add Mapping
       </button>
 
@@ -71,23 +94,19 @@ const ColumnMappingWizard: FC<Props> = ({
         <h5>Mappings</h5>
         {mappings.map((mapping, index) => (
           <div key={index}>
-            {mapping.source} {"->"} {mapping.destination}
-          </div> // Updated this line
+            {mapping.source.TableName}.{mapping.source.ColumnName} {"->"}
+            {mapping.destination.TableName}.{mapping.destination.ColumnName}
+            <button onClick={() => handleRemoveMapping(mapping)}>Remove</button>
+          </div>
         ))}
       </div>
 
-      {mappings.length > 0 && (
-        <button
-          className="btn btn-success mt-3"
-          onClick={() =>
-            onMappingComplete(
-              Object.fromEntries(mappings.map((m) => [m.source, m.destination]))
-            )
-          }
-        >
-          Complete Mapping
-        </button>
-      )}
+      <button
+        onClick={() => onMappingComplete(mappings)}
+        disabled={mappings.length === 0}
+      >
+        Complete Mapping
+      </button>
     </div>
   );
 };

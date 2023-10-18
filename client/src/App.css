@@ -2,6 +2,15 @@
   text-align: center;
 }
 
+.selected {
+  background-color: yellow;
+}
+
+.selected {
+  background-color: lightblue;
+  cursor: pointer;
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;

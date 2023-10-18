@@ -1,16 +1,16 @@
-import React, { FC, useCallback, useState } from "react";
+import React, { FC, ChangeEvent, useState, useCallback } from "react";
 import * as XLSX from "xlsx";
-import { ColumnDetail } from "./types";
+import { ColumnDetail } from "./types"; // Make sure the import path is correct
 
 interface Props {
   onSchemaLoad: (schema: ColumnDetail[]) => void;
-  isSource: boolean;
 }
 
-const SourceTableSchemaLoader: FC<Props> = ({ onSchemaLoad, isSource }) => {
+const DestinationTableSchemaLoader: FC<Props> = ({ onSchemaLoad }) => {
   const [file, setFile] = useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false); // New state for loading status
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
       setFile(files[0]);
@@ -19,6 +19,7 @@ const SourceTableSchemaLoader: FC<Props> = ({ onSchemaLoad, isSource }) => {
 
   const handleLoadSchema = useCallback(() => {
     if (file) {
+      setIsLoading(true); // Set loading to true when starting to load the schema
       const reader = new FileReader();
       reader.onload = (e) => {
         const data = e.target?.result;
@@ -41,19 +42,32 @@ const SourceTableSchemaLoader: FC<Props> = ({ onSchemaLoad, isSource }) => {
         }));
 
         onSchemaLoad(columns);
+        setIsLoading(false); // Set loading to false after loading the schema
       };
       reader.readAsBinaryString(file);
     }
   }, [file, onSchemaLoad]);
 
   return (
-    <div>
-      <input type="file" onChange={handleFileUpload} />
-      <button onClick={handleLoadSchema}>
-        Load {isSource ? "Source" : "Destination"} Schema
+    <div className="mb-3">
+      <label className="form-label">
+        Upload Destination Table Schema Excel File:
+      </label>
+      <input
+        type="file"
+        className="form-control"
+        onChange={handleFileUpload}
+        accept=".xlsx, .xls"
+      />
+      {file && <p className="mt-2">File Uploaded: {file.name}</p>}
+      <button onClick={handleLoadSchema} disabled={isLoading}>
+        {" "}
+        {/* Disable the button when loading */}
+        {isLoading ? "Loading..." : "Load Destination Schema"}{" "}
+        {/* Show loading text when loading */}
       </button>
     </div>
   );
 };
 
-export default SourceTableSchemaLoader;
+export default DestinationTableSchemaLoader;
