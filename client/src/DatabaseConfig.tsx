@@ -1,14 +1,7 @@
 import React, { FC, useState, ChangeEvent } from "react";
-import {
-  Container,
-  Row,
-  Col,
-  Form,
-  Button,
-  Alert,
-  Modal,
-} from "react-bootstrap";
+import { Container, Row, Col, Form, Button, Modal } from "react-bootstrap";
 import axios from "axios";
+import config from "./config";
 
 export interface DatabaseConfigType {
   type: string;
@@ -17,7 +10,7 @@ export interface DatabaseConfigType {
   username: string;
   password: string;
   databaseName: string;
-  tableName: string;
+  connectionString: string; // Updated this line
 }
 
 interface DatabaseConfigProps {
@@ -30,23 +23,23 @@ interface DatabaseConfigProps {
 const DatabaseConfigForm: FC<DatabaseConfigProps> = ({ onConfigSubmit }) => {
   const [sourceConfig, setSourceConfig] = useState<DatabaseConfigType>({
     type: "MSSQLSERVER",
-    host: "GMT886676",
+    host: "GBM98124",
     port: 7000,
     username: "sa",
     password: "sa",
     databaseName: "CS",
-    tableName: "Employee",
+    connectionString: "", // Updated this line
   });
 
   const [destinationConfig, setDestinationConfig] =
     useState<DatabaseConfigType>({
       type: "ORACLE",
-      host: "GMT886677",
-      port: 8000,
-      username: "sa",
+      host: "GBM98125",
+      port: 0,
+      username: "8000",
       password: "sa",
       databaseName: "UBS",
-      tableName: "Employee",
+      connectionString: "", // Updated this line
     });
 
   const handleInputChange = (
@@ -70,18 +63,18 @@ const DatabaseConfigForm: FC<DatabaseConfigProps> = ({ onConfigSubmit }) => {
     e.preventDefault();
     onConfigSubmit(sourceConfig, destinationConfig);
   };
-
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
 
   const handleClose = () => setShowModal(false);
 
-  const testConnection = async (config: DatabaseConfigType, type: string) => {
+  const testConnection = async (
+    databaseConfigType: DatabaseConfigType,
+    type: string,
+    url: string
+  ) => {
     try {
-      const response = await axios.post(
-        "http://example.com/api/test-connection",
-        config
-      );
+      const response = await axios.post(url, databaseConfigType);
       if (response.data.success) {
         setModalMessage(`${type} DB Connection Successful!`);
       } else {
@@ -97,6 +90,7 @@ const DatabaseConfigForm: FC<DatabaseConfigProps> = ({ onConfigSubmit }) => {
       setShowModal(true);
     }
   };
+
   return (
     <Form onSubmit={handleSubmit}>
       <Container>
@@ -110,7 +104,7 @@ const DatabaseConfigForm: FC<DatabaseConfigProps> = ({ onConfigSubmit }) => {
               "username",
               "password",
               "databaseName",
-              "tableName",
+              "connectionString", // Updated this line
             ].map((field, index) => (
               <Form.Group className="mb-3" key={field}>
                 <Form.Label>
@@ -155,7 +149,7 @@ const DatabaseConfigForm: FC<DatabaseConfigProps> = ({ onConfigSubmit }) => {
               "username",
               "password",
               "databaseName",
-              "tableName",
+              "connectionString", // Updated this line
             ].map((field, index) => (
               <Form.Group className="mb-3" key={field}>
                 <Form.Label>
@@ -197,14 +191,26 @@ const DatabaseConfigForm: FC<DatabaseConfigProps> = ({ onConfigSubmit }) => {
         </Button>
         <Button
           variant="secondary"
-          onClick={() => testConnection(sourceConfig, "Source")}
+          onClick={() =>
+            testConnection(
+              sourceConfig,
+              "Source",
+              config.sourceTestConnectionUrl
+            )
+          }
           style={{ marginLeft: "10px" }}
         >
           Test Source DB Connection
         </Button>
         <Button
           variant="secondary"
-          onClick={() => testConnection(destinationConfig, "Destination")}
+          onClick={() =>
+            testConnection(
+              destinationConfig,
+              "Destination",
+              config.sourceTestConnectionUrl
+            )
+          }
           style={{ marginLeft: "10px" }}
         >
           Test Destination DB Connection

@@ -24,7 +24,7 @@ function App() {
     username: "",
     password: "",
     databaseName: "",
-    tableName: "",
+    connectionString: "",
   });
 
   const [destinationConfig, setDestinationConfig] =
@@ -35,7 +35,7 @@ function App() {
       username: "",
       password: "",
       databaseName: "",
-      tableName: "",
+      connectionString: "",
     });
 
   const [queries, setQueries] = useState<any[]>([]);
