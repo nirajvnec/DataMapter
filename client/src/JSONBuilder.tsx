@@ -2,6 +2,8 @@ import React, { FC, useEffect } from "react";
 import { DatabaseConfigType } from "./DatabaseConfig";
 import { ColumnDetail, GenericMapping } from "./types";
 import ReactJson from "react-json-view";
+import axios from "axios";
+import config from "./config"; // Make sure to point to the correct path of your config file
 
 interface Props {
   mappings: GenericMapping<ColumnDetail>[];
@@ -20,24 +22,29 @@ const JSONBuilder: FC<Props> = ({
     console.log("Mappings in JSONBuilder: ", mappings);
   }, [mappings]);
 
-  // Function to handle the review of the JSON document
-  const handleReview = () => {
-    // Combine the mappings, sourceConfig, and destinationConfig into a single object
+  const handleReview = async () => {
     const reviewData = {
       mappings,
       sourceConfig,
       destinationConfig,
     };
 
-    // Call the onQueriesGenerated prop with the reviewData object
-    onQueriesGenerated(reviewData);
+    try {
+      // Making a post request here, and then passing the response to the prop callback
+      const response = await axios.post(
+        config.reviewColumnMappingApiUrl,
+        reviewData
+      ); // Ensure apiUrl in config points to the correct endpoint
+      console.log("Data posted successfully", response.data);
+      onQueriesGenerated(response.data); // passing response to the prop callback
+    } catch (error) {
+      console.error("There was an error posting the data", error);
+    }
   };
 
   return (
     <div>
       <h2>Review the JSON</h2>
-
-      {/* Use the ReactJson component to display the JSON data */}
       <ReactJson
         src={{
           mappings,
@@ -49,8 +56,6 @@ const JSONBuilder: FC<Props> = ({
         collapseStringsAfterLength={15}
         displayDataTypes={false}
       />
-
-      {/* Button to trigger the review of the JSON document */}
       <button onClick={handleReview}>Send for Review</button>
     </div>
   );
