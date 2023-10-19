@@ -48,9 +48,19 @@ const SourceTableSchemaLoader: FC<Props> = ({ onSchemaLoad, isSource }) => {
   }, [file, onSchemaLoad]);
 
   return (
-    <div>
-      <input type="file" onChange={handleFileUpload} />
-      <button onClick={handleLoadSchema}>
+    <div className="container mt-5">
+      <div className="mb-3">
+        <label htmlFor="formFile" className="form-label">
+          Choose a file
+        </label>
+        <input
+          className="form-control"
+          type="file"
+          id="formFile"
+          onChange={handleFileUpload}
+        />
+      </div>
+      <button className="btn btn-primary" onClick={handleLoadSchema}>
         Load {isSource ? "Source" : "Destination"} Schema
       </button>
     </div>
