@@ -1,3 +1,5 @@
+import { DatabaseConfigType } from "./DatabaseConfig";
+
 export interface ColumnDetail {
   TableName: string;
   ColumnName: string;
@@ -18,4 +20,11 @@ export interface Mapping {
   // Added generic type parameter T
   source: ColumnDetail;
   destination: ColumnDetail;
+}
+
+export interface TransformedConfig {
+  connection_details: {
+    source?: DatabaseConfigType;
+    target?: DatabaseConfigType;
+  };
 }

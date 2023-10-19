@@ -21,9 +21,9 @@ function App() {
     type: "",
     host: "",
     port: 0,
-    username: "",
+    user_name: "",
     password: "",
-    databaseName: "",
+    dbname: "",
     connectionString: "",
   });
 
@@ -32,9 +32,9 @@ function App() {
       type: "",
       host: "",
       port: 0,
-      username: "",
+      user_name: "",
       password: "",
-      databaseName: "",
+      dbname: "",
       connectionString: "",
     });
 

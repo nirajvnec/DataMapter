@@ -2,14 +2,15 @@ import React, { FC, useState, ChangeEvent } from "react";
 import { Container, Row, Col, Form, Button, Modal } from "react-bootstrap";
 import axios from "axios";
 import config from "./config";
+import { TransformedConfig } from "./types";
 
 export interface DatabaseConfigType {
   type: string;
   host: string;
   port: number;
-  username: string;
+  user_name: string;
   password: string;
-  databaseName: string;
+  dbname: string;
   connectionString: string; // Updated this line
 }
 
@@ -25,9 +26,9 @@ const DatabaseConfigForm: FC<DatabaseConfigProps> = ({ onConfigSubmit }) => {
     type: "MSSQLSERVER",
     host: "GBM98124",
     port: 7000,
-    username: "sa",
+    user_name: "sa",
     password: "sa",
-    databaseName: "CS",
+    dbname: "CS",
     connectionString: "", // Updated this line
   });
 
@@ -36,9 +37,9 @@ const DatabaseConfigForm: FC<DatabaseConfigProps> = ({ onConfigSubmit }) => {
       type: "ORACLE",
       host: "GBM98125",
       port: 0,
-      username: "8000",
+      user_name: "8000",
       password: "sa",
-      databaseName: "UBS",
+      dbname: "UBS",
       connectionString: "", // Updated this line
     });
 
@@ -63,6 +64,32 @@ const DatabaseConfigForm: FC<DatabaseConfigProps> = ({ onConfigSubmit }) => {
     e.preventDefault();
     onConfigSubmit(sourceConfig, destinationConfig);
   };
+
+  // Transformed Config Type
+
+  const transformToNewFormat = (
+    config: DatabaseConfigType,
+    typeKey: string
+  ): TransformedConfig => {
+    if (typeKey === "source") {
+      return {
+        connection_details: {
+          source: config,
+        },
+      };
+    } else if (typeKey === "target") {
+      return {
+        connection_details: {
+          target: config,
+        },
+      };
+    } else {
+      throw new Error(
+        "Invalid typeKey provided; must be 'source' or 'target'."
+      );
+    }
+  };
+
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
 
@@ -74,7 +101,8 @@ const DatabaseConfigForm: FC<DatabaseConfigProps> = ({ onConfigSubmit }) => {
     url: string
   ) => {
     try {
-      const response = await axios.post(url, databaseConfigType);
+      const transformedConfig = transformToNewFormat(databaseConfigType, type);
+      const response = await axios.post(url, transformedConfig);
       if (response.data.success) {
         setModalMessage(`${type} DB Connection Successful!`);
       } else {
@@ -101,9 +129,9 @@ const DatabaseConfigForm: FC<DatabaseConfigProps> = ({ onConfigSubmit }) => {
               "type",
               "host",
               "port",
-              "username",
+              "user_name",
               "password",
-              "databaseName",
+              "dbname",
               "connectionString", // Updated this line
             ].map((field, index) => (
               <Form.Group className="mb-3" key={field}>
@@ -146,9 +174,9 @@ const DatabaseConfigForm: FC<DatabaseConfigProps> = ({ onConfigSubmit }) => {
               "type",
               "host",
               "port",
-              "username",
+              "user_name",
               "password",
-              "databaseName",
+              "dbname",
               "connectionString", // Updated this line
             ].map((field, index) => (
               <Form.Group className="mb-3" key={field}>
@@ -194,7 +222,7 @@ const DatabaseConfigForm: FC<DatabaseConfigProps> = ({ onConfigSubmit }) => {
           onClick={() =>
             testConnection(
               sourceConfig,
-              "Source",
+              "source",
               config.sourceTestConnectionUrl
             )
           }
@@ -207,7 +235,7 @@ const DatabaseConfigForm: FC<DatabaseConfigProps> = ({ onConfigSubmit }) => {
           onClick={() =>
             testConnection(
               destinationConfig,
-              "Destination",
+              "target",
               config.sourceTestConnectionUrl
             )
           }

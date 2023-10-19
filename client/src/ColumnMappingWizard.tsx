@@ -97,13 +97,25 @@ const ColumnMappingWizard: FC<Props> = ({
       </button>
       <div className="mappings mt-4">
         <h5>Mappings</h5>
-        {mappings.map((mapping, index) => (
-          <div key={index}>
-            {mapping.source.TableName}.{mapping.source.ColumnName} {"->"}
-            {mapping.destination.TableName}.{mapping.destination.ColumnName}
-            <button onClick={() => handleRemoveMapping(mapping)}>Remove</button>
-          </div>
-        ))}
+        <ul className="list-group">
+          {mappings.map((mapping, index) => (
+            <li
+              key={index}
+              className="list-group-item d-flex justify-content-between align-items-center"
+            >
+              <span>
+                {mapping.source.TableName}.{mapping.source.ColumnName} {"->"}
+                {mapping.destination.TableName}.{mapping.destination.ColumnName}
+              </span>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={() => handleRemoveMapping(mapping)}
+              >
+                Remove
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
       <button
         className="btn btn-success mt-4"
