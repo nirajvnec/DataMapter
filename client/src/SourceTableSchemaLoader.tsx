@@ -38,6 +38,7 @@ const SourceTableSchemaLoader: FC<Props> = ({ onSchemaLoad, isSource }) => {
           Length: row[3],
           IsKey: row[4],
           KeyType: row[5],
+          IsNullAllowed: row[6],
         }));
 
         onSchemaLoad(columns);

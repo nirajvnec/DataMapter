@@ -5,6 +5,7 @@ export interface ColumnDetail {
   Length: string;
   IsKey: string;
   KeyType: string;
+  IsNullAllowed: string;
 }
 
 export interface GenericMapping<T> {

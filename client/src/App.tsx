@@ -67,23 +67,38 @@ function App() {
           <DatabaseConfig onConfigSubmit={handleConfigsSubmit} />
         </>
       )}
-
       {step === 2 && (
-        <>
+        <div className="container">
           <h2>Step 2: Load Table Schemas</h2>
-          <SourceTableSchemaLoader
-            onSchemaLoad={setSourceSchema}
-            isSource={true}
-          />
-          <SourceTableSchemaLoader
-            onSchemaLoad={setDestinationSchema}
-            isSource={false}
-          />
-          <button onClick={() => setStep(1)}>Back</button>
-          <button onClick={() => setStep(3)}>Next</button>
-        </>
+          <div className="row mb-3">
+            <div className="col">
+              <SourceTableSchemaLoader
+                onSchemaLoad={setSourceSchema}
+                isSource={true}
+              />
+            </div>
+          </div>
+          <div className="row mb-3">
+            <div className="col">
+              <SourceTableSchemaLoader
+                onSchemaLoad={setDestinationSchema}
+                isSource={false}
+              />
+            </div>
+          </div>
+          <div className="d-flex justify-content-center">
+            <button
+              className="btn btn-secondary me-2"
+              onClick={() => setStep(1)}
+            >
+              Back
+            </button>
+            <button className="btn btn-primary" onClick={() => setStep(3)}>
+              Next
+            </button>
+          </div>
+        </div>
       )}
-
       {step === 3 && (
         <>
           <h2>Step 3: Column Mapping</h2>
