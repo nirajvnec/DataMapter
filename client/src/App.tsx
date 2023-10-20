@@ -6,10 +6,14 @@ import ColumnMappingWizard from "./ColumnMappingWizard";
 import JSONBuilder from "./JSONBuilder";
 import { ColumnDetail, GenericMapping, Mapping } from "./types";
 import QueryBuilder from "./QueryBuilder";
+import ExcelToJsonConverter from "./ExcelToJsonConverter";
+import JoinComponent from "./JoinComponent";
 
 function App() {
   const [step, setStep] = useState(1);
-
+  const [joinClauseDetails, setJoinClauseDetails] = useState<{
+    [tableName: string]: string;
+  }>({});
   const [sourceSchema, setSourceSchema] = useState<ColumnDetail[]>([]);
   const [destinationSchema, setDestinationSchema] = useState<ColumnDetail[]>(
     []
@@ -136,8 +140,33 @@ function App() {
         <>
           <h2>Step 5: Create Query</h2>
           <QueryBuilder onSubmit={handleQuerySubmit} />
-          {/* If you have more steps, update the setStep value accordingly */}
           <button onClick={() => setStep(4)}>Back</button>
+          <button onClick={() => setStep(6)}>Next</button>{" "}
+          {/* Updated this line */}
+        </>
+      )}
+
+      {step === 6 && (
+        <>
+          <h2>Step 6: Convert Excel to JSON</h2>
+          <ExcelToJsonConverter />
+          <button onClick={() => setStep(5)}>Back</button>
+          <button onClick={() => setStep(7)}>Next</button>{" "}
+        </>
+      )}
+
+      {step === 7 && (
+        <>
+          <h2>Step 7: Join Tables</h2> // Changed step title to make it unique
+          <JoinComponent
+            sourceSchema={sourceSchema} // Passed actual sourceSchema state
+            destinationSchema={destinationSchema} // Passed actual destinationSchema state
+            onJoinComplete={(joins: { [tableName: string]: string }) => {
+              console.log(joins); // Just logging the joins for now
+            }}
+          />
+          <button onClick={() => setStep(6)}>Back</button> // Changed to go back
+          to step 6
         </>
       )}
     </div>
